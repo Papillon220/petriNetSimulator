@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Petri-Netz-Simulator</title>
+<script>
+  // Farbschema vor dem ersten Zeichnen setzen (kein Aufblitzen)
+  try {
+    const t = localStorage.getItem('petriNet:theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) { /* Standard: hell */ }
+</script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="edit">
+<header>
+  <h1 class="brand">
+    <svg viewBox="0 0 44 24" width="40" height="22" aria-hidden="true">
+      <circle cx="7" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
+      <circle cx="7" cy="12" r="2.2" fill="currentColor"/>
+      <path d="M13 12 H17" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M16.5 9.2 L20 12 L16.5 14.8 Z" fill="currentColor"/>
+      <rect x="20" y="6" width="4" height="12" fill="currentColor"/>
+      <path d="M24 12 H28" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M27.5 9.2 L31 12 L27.5 14.8 Z" fill="currentColor"/>
+      <circle cx="37" cy="12" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
+    </svg>
+    <span>Petri-Netz-Simulator</span>
+  </h1>
+  <label>Beispiel:
+    <select id="example">
+      <option value="">– auswählen –</option>
+      <option value="car1">Autowaschanlage (1 Waschplatz)</option>
+      <option value="car2">Autowaschanlage (2 Waschplätze)</option>
+      <option value="car3">Autowaschanlage (1 Waschplatz, zeitlich getaktet)</option>
+      <option value="container">Container-Entladestation</option>
+      <option value="production">Produktionsprozess</option>
+      <option value="producerConsumer">Produzent-Verbraucher (begrenzter Puffer)</option>
+      <option value="millDrill">Fräsen &amp; Bohren</option>
+      <option value="multicore">Mehrkern-Rechner</option>
+      <option value="airport">Flugplatz</option>
+      <option value="firingRules">Schaltregel-Vergleich</option>
+      <option value="philosophers">Dining Philosophers</option>
+    </select>
+  </label>
+  <label>Gespeichert:
+    <select id="saved"><option value="">– auswählen –</option></select>
+  </label>
+  <button id="btn-save">Speichern unter…</button>
+  <button id="btn-delsaved">Gespeichertes löschen</button>
+  <button id="btn-new">Neues Netz</button>
+  <div class="spacer"></div>
+  <div class="seg">
+    <button id="mode-edit" class="active">Bearbeiten</button>
+    <button id="mode-sim">Simulation (Token Game)</button>
+  </div>
+  <div class="author">
+    <span class="author-name">Prof. Dr.-Ing. Frank Bender</span>
+    <span class="author-meta">DHBW Stuttgart · Letzte Änderung: <time class="last-modified">–</time> · <span class="version"></span></span>
+  </div>
+  <button id="btn-demo" class="demo-btn" title="Demo-Modus: Vollbild, Flugplatz im Auto-Lauf – Esc beendet">▶ Demo</button>
+  <button id="btn-theme" class="theme-btn" title="Hell / Dunkel umschalten"></button>
+</header>
+
+<div id="toolbar">
+  <div class="group edit-only">
+    <button data-tool="select" class="active" title="Auswählen / Verschieben">Auswählen</button>
+    <button data-tool="place" title="Stelle setzen">○ Stelle</button>
+    <button data-tool="trans" title="Transition setzen">▮ Transition</button>
+    <button data-tool="ttrans" title="Zeitbehaftete Transition setzen">▯ Zeit-Transition</button>
+    <button data-tool="arc" title="Quelle, Zwischenpunkte auf der Fläche, dann Ziel anklicken">→ Kante</button>
+    <button data-tool="token" title="Links: Marke +, Rechts: Marke −">● Marken</button>
+    <button data-tool="comment" title="Kommentar hinzufügen">✎ Kommentar</button>
+    <label class="comment-color">Farbe
+      <select id="comment-color" aria-label="Kommentarfarbe">
+        <option value="#222222">Schwarz</option>
+        <option value="#c00000">Rot</option>
+        <option value="#0070c0">Blau</option>
+        <option value="#008000">Grün</option>
+      </select>
+    </label>
+    <button id="btn-rotate" title="Ausgewählte Transitionen drehen" disabled>↻ Drehen</button>
+    <button data-tool="delete" title="Element löschen">✕ Löschen</button>
+  </div>
+  <div class="group sim-only">
+    <button id="btn-reset">⟲ Zurücksetzen</button>
+    <button id="btn-undo">◀ Schritt zurück</button>
+    <button id="btn-auto">▶ Auto-Lauf</button>
+    <label>Tempo
+      <select id="speed">
+        <option value="0.1">0,1×</option>
+        <option value="0.2">0,2×</option>
+        <option value="0.5">0,5×</option>
+        <option value="1" selected>1×</option>
+        <option value="2">2×</option>
+        <option value="4">4×</option>
+      </select>
+    </label>
+    <label>Schaltregel
+      <select id="firing-rule" title="Aktivierungsbedingung für Transitionen">
+        <option value="strong" selected>stark</option>
+        <option value="weak">schwach</option>
+      </select>
+    </label>
+  </div>
+  <span id="status"></span>
+</div>
+
+<main>
+  <div id="stage">
+    <div id="wrap"><svg id="svg" width="1600" height="900"></svg></div>
+    <div class="demo-banner">
+      <div><b>Petri-Netz-Simulator</b> – Flugplatz</div>
+      <div class="demo-author">Prof. Dr.-Ing. Frank Bender · DHBW Stuttgart · <span class="version"></span></div>
+    </div>
+    <button id="btn-demo-exit" class="demo-exit" title="Demo beenden (Esc)">✕ Demo beenden (Esc)</button>
+    <div class="demo-ctrl">
+      <span>Tempo</span>
+      <button id="demo-slower" title="Langsamer (− oder ↓)">−</button>
+      <b id="demo-speed">1×</b>
+      <button id="demo-faster" title="Schneller (+ oder ↑)">+</button>
+      <button id="demo-pause" title="Anhalten / Fortsetzen (Leertaste)">❚❚ Anhalten</button>
+    </div>
+  </div>
+  <aside>
+    <section>
+      <h2>Netzinformationen</h2>
+      <div id="info"></div>
+    </section>
+    <section class="edit-only">
+      <h2>Eigenschaften</h2>
+      <div id="props"></div>
+    </section>
+    <section class="edit-only">
+      <h2>Verknüpfungen (Bausteine)</h2>
+      <div class="patterns">
+        <button data-pattern="seq">Zustandsfolge</button>
+        <button data-pattern="altBranch">Alternative Verzweigung</button>
+        <button data-pattern="parBranch">Parallele Verzweigung</button>
+        <button data-pattern="altMerge">Alternative Vereinigung</button>
+        <button data-pattern="parMerge">Parallele Vereinigung</button>
+      </div>
+    </section>
+    <section class="grow">
+      <h2>Verlauf <button id="btn-csv" class="small">CSV</button></h2>
+      <ol id="log"></ol>
+    </section>
+  </aside>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

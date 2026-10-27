@@ -1,0 +1,100 @@
+/* Farben: Hell (Standard) und Dunkel; die SVG-Zeichnung liest die --pn-*-Werte in app.js */
+:root, :root[data-theme='light'] {
+  color-scheme: light;
+  --text: #222; --muted: #555; --faint: #777;
+  --header-bg: #0070c0; --header-ink: #fff; --header-muted: rgba(255, 255, 255, .8);
+  --btn-bg: #f6f6f6; --btn-hover: #e8e8e8; --btn-border: #aaa;
+  --active: #004b87; --active-ink: #fff;
+  --bar-bg: #f0f0f0; --line: #ccc; --line-2: #ddd;
+  --aside-bg: #fafafa; --canvas: #fff; --input-bg: #fff;
+  --pn-ink: #000; --pn-fill: #fff; --pn-sel: #1a73e8; --pn-sel-wash: #e8f1fb;
+  --pn-weight: #c00; --pn-muted: #666; --pn-on: #1e9e3a; --pn-on-timed: #bdf0c8;
+  --pn-busy: #f5a623; --pn-busy-text: #b36b00;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --text: #e4e8ef; --muted: #aab3c0; --faint: #8f9aab;
+  --header-bg: #0b4f86; --header-ink: #fff; --header-muted: rgba(255, 255, 255, .75);
+  --btn-bg: #272d38; --btn-hover: #323a47; --btn-border: #3d4656;
+  --active: #2a78d6; --active-ink: #fff;
+  --bar-bg: #191d24; --line: #2d3440; --line-2: #2d3440;
+  --aside-bg: #191d24; --canvas: #12151a; --input-bg: #12151a;
+  --pn-ink: #e4e8ef; --pn-fill: #1d222a; --pn-sel: #5ea1ff; --pn-sel-wash: #1f3550;
+  --pn-weight: #ff8080; --pn-muted: #9aa4b2; --pn-on: #40c057; --pn-on-timed: #2b5a36;
+  --pn-busy: #f5a623; --pn-busy-text: #ffc061;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; font-family: Segoe UI, Arial, sans-serif; font-size: 14px; color: var(--text); background: var(--canvas); }
+body { display: flex; flex-direction: column; }
+input, select { background: var(--input-bg); color: var(--text); border: 1px solid var(--btn-border); border-radius: 3px; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 14px; background: var(--header-bg); color: var(--header-ink); }
+header h1 { font-size: 18px; margin: 0; }
+header select { padding: 3px; }
+header button { white-space: nowrap; }
+.brand { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.brand svg { flex: none; }
+.spacer { flex: 1; }
+.author { display: flex; flex-direction: column; align-items: flex-end; font-size: 12px; line-height: 1.35; white-space: nowrap; }
+.author-name { font-weight: 600; }
+.author-meta { color: var(--header-muted); }
+.version { font-variant-numeric: tabular-nums; }
+button { border: 1px solid var(--btn-border); background: var(--btn-bg); color: var(--text); padding: 5px 10px; border-radius: 4px; cursor: pointer; font: inherit; }
+button:hover { background: var(--btn-hover); }
+button.active { background: var(--active); color: var(--active-ink); border-color: var(--active); }
+button.small { padding: 1px 6px; font-size: 12px; }
+button:disabled { opacity: .5; cursor: default; }
+header .demo-btn { background: #fff; color: #0070c0; border-color: #fff; font-weight: 700; white-space: nowrap; }
+header .demo-btn:hover { background: #e8f1fb; }
+header .theme-btn { width: 32px; height: 30px; padding: 0; background: rgba(255, 255, 255, .15); color: #fff; border-color: rgba(255, 255, 255, .45); font-size: 16px; line-height: 1; }
+header .theme-btn:hover { background: rgba(255, 255, 255, .28); }
+.seg button { border-radius: 0; }
+.seg button:first-child { border-radius: 4px 0 0 4px; }
+.seg button:last-child { border-radius: 0 4px 4px 0; }
+#toolbar { display: flex; align-items: center; gap: 16px; padding: 6px 14px; background: var(--bar-bg); border-bottom: 1px solid var(--line); }
+.group { display: flex; gap: 4px; align-items: center; }
+.comment-color { display: flex; align-items: center; gap: 4px; }
+.comment-color select { padding: 3px; }
+#status { color: var(--muted); font-style: italic; }
+main { flex: 1; display: flex; min-height: 0; }
+#stage { flex: 1; position: relative; display: flex; min-width: 0; }
+#wrap { flex: 1; overflow: auto; background: var(--canvas); }
+#svg { background: var(--canvas); display: block; user-select: none; fill: var(--pn-ink); }
+aside { width: 340px; border-left: 1px solid var(--line); background: var(--aside-bg); display: flex; flex-direction: column; overflow-y: auto; }
+aside section { padding: 8px 12px; border-bottom: 1px solid var(--line-2); }
+aside section.grow { flex: 1; min-height: 180px; display: flex; flex-direction: column; }
+aside h2 { font-size: 14px; margin: 0 0 6px; display: flex; justify-content: space-between; align-items: center; }
+#info table { width: 100%; border-collapse: collapse; }
+#info td { padding: 1px 0; }
+#info td:last-child { text-align: right; font-weight: 600; }
+#info .desc { color: var(--muted); margin-bottom: 8px; font-size: 13px; }
+#info h3 { font-size: 13px; margin: 8px 0 2px; }
+.field { display: flex; justify-content: space-between; align-items: center; margin: 4px 0; gap: 8px; }
+.field input, .field select { width: 120px; padding: 2px 4px; }
+.hint { color: var(--faint); font-size: 12px; margin: 2px 0; }
+.patterns { display: flex; flex-direction: column; gap: 4px; }
+#log { margin: 0; padding-left: 28px; overflow-y: auto; flex: 1; font-size: 12px; max-height: 40vh; }
+#log li { margin-bottom: 3px; }
+#log .m { color: var(--faint); display: block; }
+body.sim .edit-only { display: none !important; }
+body.edit .sim-only { display: none !important; }
+
+/* Demo-Modus: Vollbild, nur Netz, Netzinformationen und Verlauf */
+.demo-banner, .demo-exit, .demo-ctrl { display: none; }
+body.demo header, body.demo #toolbar { display: none !important; }
+body.demo #wrap { overflow: hidden; }
+body.demo #log { max-height: none; }
+body.demo .demo-banner {
+  display: flex; flex-direction: column; align-items: center; position: absolute; left: 50%; top: 12px; transform: translateX(-50%);
+  padding: 6px 16px; border-radius: 10px; background: var(--aside-bg); border: 1px solid var(--line); font-size: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12); pointer-events: none; white-space: nowrap;
+}
+body.demo .demo-author { font-size: 12px; color: var(--muted); }
+body.demo .demo-exit { display: block; position: absolute; left: 12px; bottom: 12px; font-size: 12px; opacity: .55; }
+body.demo .demo-exit:hover { opacity: 1; }
+body.demo .demo-ctrl {
+  display: flex; align-items: center; gap: 6px; position: absolute; right: 12px; bottom: 12px; padding: 5px 8px;
+  border-radius: 8px; background: var(--aside-bg); border: 1px solid var(--line); font-size: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+body.demo .demo-ctrl b { min-width: 3em; text-align: center; font-variant-numeric: tabular-nums; }
+body.demo .demo-ctrl button { padding: 2px 8px; }
